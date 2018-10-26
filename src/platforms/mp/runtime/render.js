@@ -142,7 +142,9 @@ export function updateDataToMP () {
   const timeStampStart = new Date().getTime()
   const callback = function () {
     const renderTime = new Date().getTime() - timeStampStart
+    var totalTime = new Date().getTime() - getApp().globalPreformanceTimingPoint
     console.log('从v-dom到小程序页面的真实renderTime(ms):' + renderTime)
+    console.log('从用户触发事件到渲染完成的renderTime(ms),取最后一个出现在console的值:' + totalTime)
   }
   const data = formatVmData(this)
   throttleSetData(page.setData.bind(page), data, callback)
