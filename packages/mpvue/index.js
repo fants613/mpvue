@@ -5387,14 +5387,14 @@ function throttle (func, wait, options) {
     result = func.apply(context, args);
     if (!timeout) { context = args = null; }
   }
-  return function (handle, data) {
+  return function (handle, data, callback) {
     var now = Date.now();
     // 首次执行时，如果设定了开始边界不执行选项，将上次执行时间设定为当前时间。
     if (!previous && options.leading === false) { previous = now; }
     // 延迟执行时间间隔
     var remaining = wait - (now - previous);
     context = this;
-    args = args ? [handle, Object.assign(args[1], data)] : [handle, data];
+    args = args ? [handle, Object.assign(args[1], data), callback] : [handle, data, callback];
     // 延迟时间间隔remaining小于等于0，表示上次执行至此所间隔时间已经超过一个时间窗口
     // remaining大于时间窗口wait，表示客户端系统时间被调整过
     if (remaining <= 0 || remaining > wait) {
@@ -5412,8 +5412,12 @@ function throttle (func, wait, options) {
 }
 
 // 优化频繁的 setData: https://mp.weixin.qq.com/debug/wxadoc/dev/framework/performance/tips.html
-var throttleSetData = throttle(function (handle, data) {
-  handle(data);
+var throttleSetData = throttle(function (handle, data, callback) {
+  if (callback && typeof callback === 'function') {
+    handle(data, callback);
+  } else {
+    handle(data);
+  }
 }, 50);
 
 function getPage (vm) {
@@ -5435,9 +5439,14 @@ function updateDataToMP () {
   if (!page) {
     return
   }
-
+  // 计算渲染时间
+  var timeStampStart = new Date().getTime();
+  var callback = function () {
+    var renderTime = new Date().getTime() - timeStampStart;
+    console.log('从v-dom到小程序页面的真实renderTime(ms):' + renderTime);
+  };
   var data = formatVmData(this);
-  throttleSetData(page.setData.bind(page), data);
+  throttleSetData(page.setData.bind(page), data, callback);
 }
 
 function initDataToMP () {
