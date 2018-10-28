@@ -5433,12 +5433,23 @@ function getPage (vm) {
   return page
 }
 
+function diffData (mpDataBase, updateData) {
+  var _updateDataKey = Object.keys(updateData)[0];
+  updateData = updateData[_updateDataKey];
+
+  if (JSON.stringify(mpDataBase[_updateDataKey]) !== JSON.stringify(updateData)) {
+    return true
+  }
+  return false
+}
+
 // 优化每次 setData 都传递大量新数据
 function updateDataToMP () {
   var page = getPage(this);
   if (!page) {
     return
   }
+
   // 计算渲染时间
   var timeStampStart = new Date().getTime();
   var callback = function () {
@@ -5448,7 +5459,14 @@ function updateDataToMP () {
     console.log('从用户触发事件到渲染完成的renderTime(ms),取最后一个出现在console的值:' + totalTime);
   };
   var data = formatVmData(this);
-  throttleSetData(page.setData.bind(page), data, callback);
+  if (!page.mpDataBase) {
+    page.mpDataBase = {};
+  }
+  // 先计算是否需要更新，更新的话把数据同步到page.mpDataBase上用于下次比对
+  if (diffData(page.mpDataBase, data)) {
+    throttleSetData(page.setData.bind(page), data, callback);
+    Object.assign(page.mpDataBase, data);
+  }
 }
 
 function initDataToMP () {
@@ -5458,6 +5476,13 @@ function initDataToMP () {
   }
 
   var data = collectVmData(this.$root);
+
+  if (!page.mpDataBase) {
+    page.mpDataBase = {};
+  }
+
+  Object.assign(page.mpDataBase, data);
+
   page.setData(data);
 }
 
