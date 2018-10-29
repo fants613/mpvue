@@ -5463,8 +5463,12 @@ function updateDataToMP () {
     page.mpDataBase = {};
   }
   // 先计算是否需要更新，更新的话把数据同步到page.mpDataBase上用于下次比对
+
   if (diffData(page.mpDataBase, data)) {
     throttleSetData(page.setData.bind(page), data, callback);
+    var updateData = JSON.stringify(data);
+    updateData = updateData.replace(/[^\u0000-\u00ff]/g, 'aa'); // 中文占2字节，中文替换成两个字母计算占用空间
+    console.log('框架实际setData数据量:' + (updateData.length / 1024 + 'kb').toFixed(1));
     Object.assign(page.mpDataBase, data);
   }
 }
