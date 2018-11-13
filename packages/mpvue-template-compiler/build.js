@@ -2920,8 +2920,6 @@ function defineReactive$$1 (
     return
   }
 
-  // TODO: 先试验标记一下 keyPath
-
   // cater for pre-defined getter/setters
   var getter = property && property.get;
   var setter = property && property.set;
@@ -2995,8 +2993,10 @@ function set (target, key, val) {
     return val
   }
   defineReactive$$1(ob.value, key, val);
-  // Vue.set 添加对象属性，渲染时候把val传给小程序渲染
-  target.__keyPath = target.__keyPath ? target.__keyPath : {};
+  // Vue.set 添加对象属性，渲染时候把 val 传给小程序渲染
+  if (!target.__keyPath) {
+    target.__keyPath = {};
+  }
   target.__keyPath[key] = true;
   ob.dep.notify();
   return val
@@ -4615,7 +4615,7 @@ var component = {
     var mpcomid = ast.mpcomid;
     var slots = ast.slots;
     if (slotName) {
-      attrsMap['data'] = "{{...$root[$k], $root}}";
+      attrsMap['data'] = "{{...$root[$p], ...$root[$k], $root}}";
       // bindedName is available when rendering slot in v-for
       var bindedName = attrsMap['v-bind:name'];
       if(bindedName) {
