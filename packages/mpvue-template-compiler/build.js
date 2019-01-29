@@ -2894,10 +2894,6 @@ function observe (value, asRootData, key) {
     !value._isVue
   ) {
     ob = new Observer(value, key);
-    if (!ob.__keyPath) {
-      def(ob, '__keyPath', {}, false);
-    }
-    ob.__keyPath[key] = true;
   }
   if (asRootData && ob) {
     ob.vmCount++;
@@ -2966,6 +2962,10 @@ function defineReactive$$1 (
         def(obj, '__keyPath', {}, false);
       }
       obj.__keyPath[key] = true;
+      if (newVal instanceof Object && !(newVal instanceof Array)) {
+        // 标记是否是通过this.Obj = {} 赋值印发的改动，解决少更新问题#1305
+        def(newVal, '__newReference', true, false);
+      }
     }
   });
 }
