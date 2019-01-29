@@ -108,7 +108,7 @@ export function diffData (vm, data) {
   // console.log(rootKey)
 
   // 值类型变量不考虑优化，还是直接更新
-  const __keyPathOnThis = getDeepData(['__ob__', '__keyPath'], vmData) || getDeepData(['__ob__', '__keyPath'], vm) || {}
+  const __keyPathOnThis = vmData.__keyPath || vm.__keyPath || {}
   delete vm.__keyPath
   delete vmData.__keyPath
   delete vmProps.__keyPath

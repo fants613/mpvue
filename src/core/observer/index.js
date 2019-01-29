@@ -121,6 +121,10 @@ export function observe (value: any, asRootData: ?boolean, key: any): Observer |
     !value._isVue
   ) {
     ob = new Observer(value, key)
+    if (!ob.__keyPath) {
+      def(ob, '__keyPath', {}, false)
+    }
+    ob.__keyPath[key] = true
   }
   if (asRootData && ob) {
     ob.vmCount++
@@ -185,11 +189,10 @@ export function defineReactive (
       childOb = !shallow && observe(newVal, undefined, key)
       dep.notify()
 
-      const ob = obj.__ob__
-      if (!ob.__keyPath) {
-        def(ob, '__keyPath', {}, false)
+      if (!obj.__keyPath) {
+        def(obj, '__keyPath', {}, false)
       }
-      ob.__keyPath[key] = true
+      obj.__keyPath[key] = true
     }
   })
 }
